@@ -1,0 +1,24 @@
+using System.Threading.Tasks;
+using CompanyModels;
+using Microsoft.AspNetCore.Mvc;
+using CompanyData;
+
+namespace CompanyAPI.Controllers
+{
+    [Route("api/[controller]")]
+    public class FilesController : Controller
+    {
+        private readonly IFileData _fileData;
+
+        public FilesController(IFileData fileData)
+        {
+            _fileData = fileData;
+        }        
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody]FileAttributes file)
+        {
+                var res = await _fileData.SaveFile(file);
+            return Ok(res);
+        }
+     }
+}
