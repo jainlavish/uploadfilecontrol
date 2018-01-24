@@ -1,0 +1,33 @@
+using System.Data;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
+using CompanyModels;
+using Microsoft.Extensions.Options;
+
+namespace CompanyData
+{
+    public class FileData : IFileData
+    {
+        public readonly string ConnectionString;
+
+        public FileData(IOptions<DbConnection> connection)
+        {
+            ConnectionString = connection.Value?.DefaultConnection;
+        }
+
+        public async Task<int> SaveFile(FileAttributes file)
+        {
+            using (var con = new SqlConnection(ConnectionString))
+            {
+                if (con.State != ConnectionState.Open)
+                    await con.OpenAsync();
+                var sqlComm = new SqlCommand("InsertFile", con) { CommandType = CommandType.StoredProcedure };
+                sqlComm.Parameters.Add("@Name", SqlDbType.VarChar).Value = file.Name;
+                sqlComm.Parameters.Add("@ContentType", SqlDbType.VarChar).Value = file.ContentType;
+                sqlComm.Parameters.Add("@Data", SqlDbType.VarBinary).Value = file.Data;
+                var rowsAffcted = await sqlComm.ExecuteNonQueryAsync();
+                return rowsAffcted;
+            }
+        }
+    }
+}
