@@ -1,0 +1,64 @@
+[HttpPost]
+        public async Task<ActionResult> UploadFile(HttpPostedFileBase file)
+        {
+            try
+            {
+                if (file.ContentLength > 0)
+                {
+                    var fileData = new FileAttributes {Name = Path.GetFileName(file.FileName)};
+                    var path = Path.Combine(Server.MapPath("~/UploadedFiles"), fileData.Name);
+                    var ext = Path.GetExtension(fileData.Name);
+
+                    switch (ext)
+                    {
+                        case ".doc":
+                            fileData.ContentType = "ms-word";
+                            break;
+                        case ".docx":
+                            fileData.ContentType = "ms-word";
+                            break;
+                        case ".xls":
+                            fileData.ContentType = "ms-excel";
+                            break;
+                        case ".xlsx":
+                            fileData.ContentType = "ms-excel";
+                            break;
+                        case ".jpg":
+                            fileData.ContentType = "jpg";
+                            break;
+                        case ".png":
+                            fileData.ContentType = "png";
+                            break;
+                        case ".gif":
+                            fileData.ContentType = "gif";
+                            break;
+                        case ".pdf":
+                            fileData.ContentType = "pdf";
+                            break;
+                    }
+
+                    if (fileData.ContentType != string.Empty)
+                    {
+                        var fs = file.InputStream;
+                        var br = new BinaryReader(fs);
+                        var bytes = br.ReadBytes((int)fs.Length);
+
+                        fileData.Data = bytes;
+
+                    }
+                    file.SaveAs(path);
+
+                    HttpContent contentPost = new StringContent(JsonConvert.SerializeObject(fileData), Encoding.UTF8, "application/json");
+
+                    var res = await HttpClientHelper.PostAsync($"{Baseurl}/api/Files", contentPost);
+
+                    ViewBag.Message = "File Uploaded Successfully!!";
+                }
+                return View();
+            }
+            catch
+            {
+                ViewBag.Message = "File upload failed!!";
+                return View();
+            }
+        }
